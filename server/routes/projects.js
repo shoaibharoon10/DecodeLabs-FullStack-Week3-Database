@@ -8,38 +8,46 @@
  *   — Safe:       does not modify server state
  *   — Idempotent: identical requests always produce identical results
  *
- * The Temporal Lobe (data.json) is read fresh on every request
- * to stay stateless — no in-memory cache that could drift out
- * of sync if data.json is edited between calls.
+ * Data source: Neon PostgreSQL (projects table) via THE BRIDGE (db.js).
+ * Replaces the former Temporal Lobe (data.json) read.
+ *
+ * Field aliasing: DB columns image_url / project_url / image_alt are
+ * aliased to image / url / imageAlt to match the frontend contract
+ * expected by main.js buildCardHTML().
  * ============================================================
  */
 
 const express = require('express');
-const path    = require('path');
-const fs      = require('fs');
+const pool    = require('../db');
 
-const router    = express.Router();
-const DATA_PATH = path.resolve(__dirname, '../data.json');
+const router = express.Router();
 
 /**
  * GET /api/projects
- * Returns the full projects array from the Temporal Lobe.
+ * Returns all portfolio projects ordered by id ascending.
  *
  * 200 OK       — projects array returned
- * 500 Internal — data.json is unreadable or malformed
+ * 500 Internal — database query failed
  */
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    // fs.readFileSync is intentional here: this is a lightweight JSON file,
-    // not a database. Synchronous read keeps the handler simple and avoids
-    // callback/promise complexity for a file that never exceeds a few KB.
-    const raw          = fs.readFileSync(DATA_PATH, 'utf8');
-    const { projects } = JSON.parse(raw);
+    const { rows } = await pool.query(
+      `SELECT
+         id,
+         title,
+         tag,
+         excerpt,
+         image_url   AS image,
+         image_alt   AS "imageAlt",
+         project_url AS url
+       FROM projects
+       ORDER BY id ASC`
+    );
 
     res.status(200).json({
       status: 'ok',
-      count:  projects.length,
-      data:   projects,
+      count:  rows.length,
+      data:   rows,
     });
   } catch (err) {
     console.error('[GET /api/projects]', err.message);

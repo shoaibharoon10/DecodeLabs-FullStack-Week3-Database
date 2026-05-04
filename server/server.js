@@ -16,6 +16,10 @@
  * ============================================================
  */
 
+// Load .env before any other module reads process.env
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+
 const express        = require('express');
 const projectsRouter = require('./routes/projects');
 const contactRouter  = require('./routes/contact');
