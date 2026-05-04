@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Muhammad Shoaib — Agentic AI Developer, Full Stack Architect, and Data Science Expert. MPhil Chemistry scholar bridging science and intelligent digital solutions."
+    />
+    <title>Muhammad Shoaib | Agentic AI Developer & Full Stack Architect</title>
+
+    <!--
+      Inline SVG favicon — no external file needed, no 404 on /favicon.ico.
+      Renders the "MS" brand mark at 32×32px using the Mocha Mousse palette.
+    -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23A5856F'/%3E%3Ctext x='16' y='22' font-family='system-ui%2Csans-serif' font-weight='bold' font-size='14' fill='white' text-anchor='middle'%3EMS%3C/text%3E%3C/svg%3E"
+    />
+
+    <!--
+      INLINE THEME SCRIPT — runs synchronously before first paint.
+      Reads localStorage and applies data-theme="dark" to <html> immediately,
+      preventing a Flash of Unstyled Content (FOUC) for returning dark-mode users.
+      The try/catch handles restricted environments where localStorage is unavailable.
+    -->
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) { /* noop — private browsing may block localStorage */ }
+      }());
+    </script>
+
+    <!-- Google Fonts: Montserrat (display) + Open Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+
+  <body>
+
+    <!--
+      Skip link — first focusable element. Satisfies WCAG 2.4.1 (Bypass Blocks).
+      Visually off-screen until :focus-visible; slides into viewport on Tab.
+    -->
+    <a href="#main-content" class="skip-link">Skip to Main Content</a>
+
+
+    <!-- =====================================================================
+         HEADER — site-wide identity + navigation + theme control.
+         role="banner" is implicit for a top-level <header> but stated
+         explicitly for older AT compatibility.
+    ===================================================================== -->
+    <header class="site-header" role="banner">
+      <div class="header__inner">
+
+        <a href="/" class="header__brand" aria-label="Muhammad Shoaib — Home">
+          <span class="brand__mark" aria-hidden="true">MS</span>
+          <span class="brand__name">Muhammad Shoaib</span>
+        </a>
+
+        <!--
+          .header__controls groups the theme toggle and the nav so the
+          header's flex layout remains a clean two-child (brand + controls)
+          structure on all viewport sizes.
+        -->
+        <div class="header__controls">
+
+          <!--
+            API STATUS INDICATOR — "The Pulse"
+            ─────────────────────────────────
+            role="status"      → implicit aria-live="polite" + aria-atomic="true"
+                                  AT announces state changes without stealing focus
+            aria-label         → updated by JS to match the current state;
+                                  provides context ("API server status: online")
+                                  even when the visible label is hidden on mobile
+            .api-status__dot   → purely decorative; aria-hidden keeps it silent
+            .api-status__label → hidden on mobile (dot alone is sufficient);
+                                  visible at 640px+ where header has breathing room
+          -->
+          <div
+            class="api-status"
+            id="apiStatus"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            aria-label="API server status: checking"
+          >
+            <span class="api-status__dot" aria-hidden="true"></span>
+            <span class="api-status__label">API: Checking…</span>
+          </div>
+
+          <!--
+            Theme Toggle — switches between Light (default) and Grounded Dark.
+            Both icons live in the DOM; CSS shows/hides based on [data-theme].
+            aria-label is updated by JS to always reflect the *next* action.
+          -->
+          <button
+            class="theme-toggle"
+            id="themeToggle"
+            aria-label="Switch to dark mode"
+            title="Toggle colour theme"
+          >
+            <!--
+              aria-hidden="true" on both icons: the button's aria-label
+              carries the full accessible name. Icons are purely decorative here.
+            -->
+            <i data-lucide="moon" class="icon--moon" aria-hidden="true"></i>
+            <i data-lucide="sun"  class="icon--sun"  aria-hidden="true"></i>
+          </button>
+
+          <nav class="site-nav" aria-label="Primary navigation">
+            <button
+              class="nav__toggle"
+              id="navToggle"
+              aria-expanded="false"
+              aria-controls="navMenu"
+              aria-label="Open navigation menu"
+            >
+              <span class="toggle__bar"></span>
+              <span class="toggle__bar"></span>
+              <span class="toggle__bar"></span>
+            </button>
+
+            <ul class="nav__menu" id="navMenu" role="list">
+              <li>
+                <a href="#home" class="nav__link nav__link--active" aria-current="page">
+                  <i data-lucide="home" aria-hidden="true"></i>
+                  <span>Home</span>
+                </a>
+              </li>
+              <li>
+                <a href="#work" class="nav__link">
+                  <i data-lucide="briefcase" aria-hidden="true"></i>
+                  <span>Work</span>
+                </a>
+              </li>
+              <li>
+                <a href="#about" class="nav__link">
+                  <i data-lucide="user" aria-hidden="true"></i>
+                  <span>About</span>
+                </a>
+              </li>
+              <li>
+                <a href="#contact" class="nav__link">
+                  <i data-lucide="mail" aria-hidden="true"></i>
+                  <span>Contact</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+        </div><!-- /header__controls -->
+
+      </div>
+    </header>
+    <!-- /site-header -->
+
+
+    <!-- =====================================================================
+         MAIN — primary content. id="home" is the "Home" nav scroll target.
+    ===================================================================== -->
+    <main class="site-main" id="home" role="main">
+
+      <!--
+        HERO — primary identity + value proposition.
+        id="main-content" is the skip-link scroll target (WCAG 2.4.1).
+        aria-labelledby ties the section landmark to the visible h1 (WCAG 1.3.1).
+      -->
+      <section class="site-hero" aria-labelledby="hero-heading" id="main-content">
+        <div class="hero__inner">
+          <div class="hero__content">
+
+            <p class="hero__eyebrow">
+              <span aria-label="MPhil Chemistry Scholar, turned IT Professional">
+                MPhil Chemistry Scholar &nbsp;&middot;&nbsp; IT Professional
+              </span>
+            </p>
+
+            <!--
+              Sole h1 on the page — all subsequent content headings are h2/h3
+              to preserve a logical document outline (WCAG 1.3.1, 2.4.6).
+            -->
+            <h1 class="hero__title" id="hero-heading">
+              Muhammad <em>Shoaib</em>
+            </h1>
+
+            <!--
+              Role line: aria-label replaces the pipe separators with commas
+              so AT reads it as a natural list rather than "vertical bar".
+            -->
+            <p
+              class="hero__role"
+              aria-label="Agentic AI Developer, Full Stack Architect, and Data Science Expert"
+            >
+              Agentic AI Developer &nbsp;&#124;&nbsp; Full Stack Architect &nbsp;&#124;&nbsp; Data Science Expert
+            </p>
+
+            <p class="hero__subtitle">
+              "Synthesizing Science, Data, and Code into Intelligent Digital Architecture."
+            </p>
+
+            <div class="hero__actions" role="group" aria-label="Portfolio call to action">
+              <a href="#work"    class="hero__cta hero__cta--primary">
+                View My Work
+                <i data-lucide="arrow-right" aria-hidden="true"></i>
+              </a>
+              <a href="#contact" class="hero__cta hero__cta--ghost">
+                Get In Touch
+              </a>
+            </div>
+
+          </div>
+        </div>
+        <div class="hero__decoration" aria-hidden="true"></div>
+      </section>
+      <!-- /site-hero -->
+
+
+      <!--
+        LAYOUT GRID — CSS Grid macro layout.
+        Mobile: 1-column stack. Desktop (1024px+): aside(280px) | section(1fr).
+      -->
+      <div class="layout-grid">
+
+        <!-- SIDEBAR — id="about" is the "About" nav scroll target -->
+        <aside class="site-sidebar" aria-label="Profile and expertise" id="about">
+
+          <!-- Profile Card -->
+          <section class="sidebar__widget" aria-labelledby="widget-profile-title">
+            <div class="profile-card">
+              <div class="profile-card__avatar" aria-hidden="true">MS</div>
+              <div class="profile-card__info">
+                <h2 class="profile-card__name" id="widget-profile-title">Muhammad Shoaib</h2>
+                <p class="profile-card__role">Agentic AI Developer</p>
+              </div>
+            </div>
+            <p class="widget__body">
+              An MPhil Chemistry scholar turned IT professional. I bridge the gap
+              between complex data analysis and high-performance web solutions,
+              specializing in Agentic AI and Responsive Architecture.
+            </p>
+          </section>
+
+          <!-- Core Skills -->
+          <section class="sidebar__widget" aria-labelledby="widget-skills-title">
+            <h2 class="widget__title" id="widget-skills-title">Core Skills</h2>
+            <ul class="tag-list" role="list">
+              <li><span class="tag">Agentic AI</span></li>
+              <li><span class="tag">Python</span></li>
+              <li><span class="tag">TypeScript</span></li>
+              <li><span class="tag">SQL / PL-SQL</span></li>
+              <li><span class="tag">Data Analysis</span></li>
+              <li><span class="tag">R &amp; Power BI</span></li>
+              <li><span class="tag">UI/UX Design</span></li>
+            </ul>
+          </section>
+
+          <!-- Certifications -->
+          <section class="sidebar__widget" aria-labelledby="widget-certs-title">
+            <h2 class="widget__title" id="widget-certs-title">Certifications</h2>
+            <ul class="cert-list" role="list">
+              <li class="cert-item">
+                <span class="cert-item__issuer">Google</span>
+                <span class="cert-item__name">Professional Certificate</span>
+              </li>
+              <li class="cert-item">
+                <span class="cert-item__issuer">Microsoft</span>
+                <span class="cert-item__name">Professional Certificate</span>
+              </li>
+              <li class="cert-item">
+                <span class="cert-item__issuer">IBM</span>
+                <span class="cert-item__name">Professional Certificate</span>
+              </li>
+              <li class="cert-item">
+                <span class="cert-item__issuer">Macquarie University</span>
+                <span class="cert-item__name">Professional Certificate</span>
+              </li>
+            </ul>
+          </section>
+
+        </aside>
+        <!-- /site-sidebar -->
+
+
+        <!-- CONTENT AREA — id="work" is the "Work" nav scroll target -->
+        <section class="content-area" aria-labelledby="featured-title" id="work">
+
+          <h2 class="section__heading" id="featured-title">Featured Projects</h2>
+
+          <!--
+            id="projectGrid" — JS fetch target.
+            aria-busy="true" signals to AT that content is loading;
+            set to "false" by JS after renderProjects() or the error state.
+            Skeleton cards are aria-hidden — they carry no real content.
+          -->
+          <div class="article-grid" id="projectGrid" aria-busy="true" aria-label="Loading projects">
+
+            <div class="card card--skeleton" aria-hidden="true">
+              <div class="card__image-wrap skeleton-pulse"></div>
+              <div class="card__body">
+                <div class="skeleton-line skeleton-line--xs  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--md  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--full skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--sm  skeleton-pulse"></div>
+              </div>
+            </div>
+
+            <div class="card card--skeleton" aria-hidden="true">
+              <div class="card__image-wrap skeleton-pulse"></div>
+              <div class="card__body">
+                <div class="skeleton-line skeleton-line--xs  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--md  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--full skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--sm  skeleton-pulse"></div>
+              </div>
+            </div>
+
+            <div class="card card--skeleton" aria-hidden="true">
+              <div class="card__image-wrap skeleton-pulse"></div>
+              <div class="card__body">
+                <div class="skeleton-line skeleton-line--xs  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--md  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--full skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--sm  skeleton-pulse"></div>
+              </div>
+            </div>
+
+            <div class="card card--skeleton" aria-hidden="true">
+              <div class="card__image-wrap skeleton-pulse"></div>
+              <div class="card__body">
+                <div class="skeleton-line skeleton-line--xs  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--md  skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--full skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-line--sm  skeleton-pulse"></div>
+              </div>
+            </div>
+
+          </div><!-- /article-grid -->
+
+        </section><!-- /content-area -->
+
+      </div><!-- /layout-grid -->
+
+      <!-- =================================================================
+           CONTACT SECTION — id="contact" is the "Contact" nav scroll target.
+           Moved here (from footer) so the nav links to the form, not the
+           footer bar. The form submits to POST /api/contact via JS.
+           ================================================================= -->
+      <section class="contact-section" id="contact" aria-labelledby="contact-heading">
+        <div class="contact-inner">
+
+          <header class="contact-header">
+            <h2 class="section__heading" id="contact-heading">Get In Touch</h2>
+            <p class="contact-subtitle">
+              Have a project in mind? Let's build something together.
+            </p>
+          </header>
+
+          <form class="contact-form" id="contactForm" novalidate>
+
+            <!--
+              Status banner — hidden by default.
+              role="alert" + aria-live="polite" ensures AT announces the
+              outcome (success or error) without stealing focus.
+            -->
+            <div
+              class="form-status"
+              id="formStatus"
+              role="alert"
+              aria-live="polite"
+              hidden
+            ></div>
+
+            <!-- Name + Email row — stacks on mobile, side-by-side at 640px+ -->
+            <div class="form-row">
+
+              <div class="form-group">
+                <label class="form-label" for="contactName">
+                  Full Name
+                  <span class="form-required" aria-label="required">*</span>
+                </label>
+                <input
+                  class="form-input"
+                  type="text"
+                  id="contactName"
+                  name="name"
+                  placeholder="Ahmad Raza"
+                  autocomplete="name"
+                  required
+                />
+                <!-- aria-live="polite" so AT reads the error when it appears -->
+                <span class="field-error" id="nameError" aria-live="polite"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="contactEmail">
+                  Email Address
+                  <span class="form-required" aria-label="required">*</span>
+                </label>
+                <input
+                  class="form-input"
+                  type="email"
+                  id="contactEmail"
+                  name="email"
+                  placeholder="ahmad@example.com"
+                  autocomplete="email"
+                  required
+                />
+                <span class="field-error" id="emailError" aria-live="polite"></span>
+              </div>
+
+            </div><!-- /form-row -->
+
+            <div class="form-group">
+              <label class="form-label" for="contactMessage">
+                Message
+                <span class="form-required" aria-label="required">*</span>
+              </label>
+              <textarea
+                class="form-textarea"
+                id="contactMessage"
+                name="message"
+                placeholder="Tell me about your project, timeline, and goals..."
+                rows="5"
+                required
+              ></textarea>
+              <span class="field-error" id="messageError" aria-live="polite"></span>
+            </div>
+
+            <!--
+              .submit-label wraps icon + text so both can be hidden together
+              when the loading state swaps them for the CSS spinner.
+            -->
+            <button class="form-submit" id="contactSubmit" type="submit">
+              <!--
+                Two states toggled by CSS via .form-submit--loading:
+                  · idle    — .submit-label  visible  (.submit-loading hidden)
+                  · loading — .submit-loading visible (.submit-label hidden)
+              -->
+              <span class="submit-label">
+                <i data-lucide="send" aria-hidden="true"></i>
+                Send Message
+              </span>
+              <span class="submit-loading" aria-hidden="true">
+                <span class="submit-spinner"></span>
+                Sending…
+              </span>
+            </button>
+
+          </form>
+
+        </div>
+      </section><!-- /contact-section -->
+
+    </main><!-- /site-main -->
+
+
+    <!-- =====================================================================
+         FOOTER — id="contact" is the "Contact" nav scroll target.
+    ===================================================================== -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer__inner">
+
+        <div class="footer__brand">
+          <p class="footer__cta">
+            Explore my craftsmanship. If you need intelligent solutions,
+            let's build the future together.
+          </p>
+          <a
+            href="mailto:shoaibharoon10@gmail.com"
+            class="footer__email"
+            aria-label="Send an email to Muhammad Shoaib"
+          >
+            <i data-lucide="mail" aria-hidden="true"></i>
+            shoaibharoon10@gmail.com
+          </a>
+        </div>
+
+        <div class="footer__links">
+          <nav class="footer__nav" aria-label="Social and contact navigation">
+            <ul role="list">
+              <li>
+                <a
+                  href="https://linkedin.com/in/muhammad-shoaib-haroon"
+                  class="footer__link footer__link--social"
+                  aria-label="Visit Muhammad Shoaib's LinkedIn profile — opens in new tab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i data-lucide="external-link" aria-hidden="true"></i>
+                  LinkedIn
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/shoaibharoon10"
+                  class="footer__link footer__link--social"
+                  aria-label="Visit Muhammad Shoaib's GitHub profile — opens in new tab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i data-lucide="code-2" aria-hidden="true"></i>
+                  GitHub
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <p class="footer__copy">
+            &copy; <span id="currentYear"></span> Muhammad Shoaib.
+            Crafted with vanilla HTML, CSS &amp; JS.
+          </p>
+        </div>
+
+      </div>
+    </footer><!-- /site-footer -->
+
+
+    <!--
+      Lucide CDN loaded just before main.js so the lucide global is available
+      when main.js calls lucide.createIcons(). Both scripts execute after
+      the full DOM is parsed — no defer/async timing issues.
+    -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>

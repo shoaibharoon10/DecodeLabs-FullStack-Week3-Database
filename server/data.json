@@ -1,0 +1,56 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "title": "E-Commerce Full-Stack Store",
+      "tag": "Next.js",
+      "excerpt": "Pixel-perfect UI/UX focused dynamic store built with Next.js App Router, featuring server components and optimised data fetching.",
+      "image": "assets/images/projects/ecommerce-store.jpg",
+      "imageAlt": "A modern e-commerce storefront with product grid, clean typography, and a warm neutral colour palette",
+      "url": "https://hackathontemplate9.vercel.app/"
+    },
+    {
+      "id": 2,
+      "title": "Physical AI Interactive Textbook",
+      "tag": "Agentic AI",
+      "excerpt": "AI-powered interactive book with a RAG-chatbot (Gemini) and real-time Urdu translation support for multilingual learners.",
+      "image": "assets/images/projects/ai-textbook.jpg",
+      "imageAlt": "An AI-powered interactive digital textbook with a bilingual chat panel",
+      "url": "https://humanoid-robotics-course-book.vercel.app/"
+    },
+    {
+      "id": 3,
+      "title": "TaskFlow AI Chatbot",
+      "tag": "Full Stack PWA",
+      "excerpt": "Full-stack PWA task manager with natural-language commands, Recharts analytics dashboard, and offline-first architecture.",
+      "image": "assets/images/projects/taskflow-chatbot.jpg",
+      "imageAlt": "A full-stack task management dashboard with analytics charts and an AI command bar",
+      "url": "https://todo-ai-chatbot-phase3.vercel.app/signup"
+    },
+    {
+      "id": 4,
+      "title": "ATS Resume Builder",
+      "tag": "TypeScript",
+      "excerpt": "High-performance TypeScript-based generator for professional resume architecture, optimised for applicant tracking systems.",
+      "image": "assets/images/projects/ats-resume-builder.jpg",
+      "imageAlt": "A professional resume builder with template selection and live ATS-score preview",
+      "url": "https://resume-builder-sage-tau.vercel.app/"
+    }
+  ],
+  "contacts": [
+    {
+      "id": 1777290144664,
+      "name": "shoaib",
+      "email": "shoaibharoon10@gmail.com",
+      "message": "Testing localhost 123",
+      "receivedAt": "2026-04-27T11:42:24.664Z"
+    },
+    {
+      "id": 1777291028396,
+      "name": "shoaib",
+      "email": "shoaibharoon10@gmail.com",
+      "message": "I would like to collaborate on a new AI project.",
+      "receivedAt": "2026-04-27T11:57:08.396Z"
+    }
+  ]
+}

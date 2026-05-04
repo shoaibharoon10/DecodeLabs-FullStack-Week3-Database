@@ -1,0 +1,20 @@
+# .dockerignore — excludes files from the Docker build context
+#
+# Docker sends the entire build context directory to the daemon before
+# processing the Dockerfile. Excluding large/irrelevant files here
+# reduces build time and prevents accidental secrets from leaking into
+# the image.
+
+# Runtime-installed dependencies — Docker installs these fresh via npm install
+node_modules/
+
+# npm debug logs
+npm-debug.log*
+
+# Development documentation — not needed in the container
+*.md
+blueprint.md
+
+# Version control metadata
+.git/
+.gitignore

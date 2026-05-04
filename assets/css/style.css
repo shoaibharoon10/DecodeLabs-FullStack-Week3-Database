@@ -1,0 +1,1859 @@
+/* ==========================================================================
+   style.css — DecodeLabs Project 1: Responsive Frontend Interface
+   Strategy: Mobile-First. Write for the smallest screen, then use
+   min-width media queries to progressively enhance for wider viewports.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS — CSS Custom Properties
+   Centralising every design decision here means a full rebrand is a
+   one-file change. Components never hard-code values; they reference tokens.
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* — Color Palette — */
+  --color-mocha:      #A5856F;   /* Mocha Mousse  — primary brand / warmth    */
+  --color-mocha-dark: #8a6d59;   /* Darker mocha for hover / active states    */
+  --color-mocha-deep: #3d2b22;   /* Deep mocha — hero bg; 14:1 contrast ratio
+                                    against white, clearing WCAG AAA           */
+  --color-mocha-mid:  #5c3d2e;   /* Mid-mocha — hero gradient mid-stop;
+                                    promoted from inline value (P2 audit fix)  */
+  --color-blue:       #A0D4E0;   /* Ethereal Blue — accent / highlight        */
+  --color-blue-light: #d0ecf2;   /* Tinted blue for subtle backgrounds        */
+  --color-blue-hover: #c8e9f0;   /* Blue lightened — primary CTA hover state;
+                                    promoted from inline value (P2 audit fix)  */
+  --color-grey:       #F2F0EA;   /* Moonlit Grey  — page background / surface */
+  --color-grey-dark:  #e0ddd4;   /* Slightly deeper grey for card surfaces    */
+
+  /* Semantic aliases — use these in components, not raw palette vars above. */
+  --bg-page:          var(--color-grey);
+  --bg-card:          #ffffff;
+  --bg-header:        #ffffff;
+  --bg-footer:        var(--color-mocha);
+
+  --text-primary:     #2c2420;   /* Near-black, warm undertone               */
+  --text-secondary:   #6b5b52;   /* Muted mocha for supporting copy          */
+  --text-inverse:     #ffffff;   /* For text on dark / mocha backgrounds     */
+  --text-link:        var(--color-mocha);
+  --text-link-hover:  var(--color-mocha-dark);
+
+  --border-subtle:    var(--color-grey-dark);
+  --shadow-card:      0 2px 12px rgba(44, 36, 32, 0.08);
+  --shadow-card-hover:0 6px 24px rgba(44, 36, 32, 0.14);
+
+  /* — Typography — */
+  --font-display:     'Montserrat', system-ui, sans-serif;  /* Headlines       */
+  --font-body:        'Open Sans', system-ui, sans-serif;   /* Body / UI copy  */
+
+  /*
+    clamp(MIN, PREFERRED, MAX)
+    fluid sizing: scales smoothly between viewport widths without breakpoints.
+    Formula: preferred = base + (scale * 1vw)
+  */
+  --fs-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.85rem);
+  --fs-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
+  --fs-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
+  --fs-md:   clamp(1.125rem, 1rem    + 0.5vw,  1.375rem);
+  --fs-lg:   clamp(1.375rem, 1.1rem  + 1vw,    1.875rem);
+  --fs-xl:   clamp(1.75rem,  1.3rem  + 1.75vw, 2.5rem);
+  --fs-2xl:  clamp(2.25rem,  1.6rem  + 2.5vw,  3.25rem);
+
+  --lh-tight:  1.25;
+  --lh-normal: 1.6;
+  --lh-loose:  1.8;
+
+  --fw-regular: 400;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* — Spacing scale (multiples of 4px) — */
+  --space-1:  0.25rem;   /*  4px */
+  --space-2:  0.5rem;    /*  8px */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+
+  /* — Layout — */
+  --max-width:     1200px;
+  --header-height: 64px;
+  --radius-sm:     4px;
+  --radius-md:     8px;
+  --radius-lg:     16px;
+  --radius-pill:   9999px;
+
+  /* — Transitions — */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast:   150ms;
+  --duration-normal: 250ms;
+  --duration-slow:   400ms;
+
+  /* — Semantic status colours — form validation and API feedback — */
+  --color-error:          #c0392b;
+  --color-error-bg:       rgba(192, 57, 43, 0.07);
+  --color-error-border:   rgba(192, 57, 43, 0.30);
+  --color-success:        #1a7a42;
+  --color-success-bg:     rgba(39, 174, 96, 0.10);
+  --color-success-border: rgba(39, 174, 96, 0.40);
+}
+
+
+/* --------------------------------------------------------------------------
+   1b. GROUNDED DARK THEME
+   Applied via [data-theme="dark"] on <html>. Overrides only the semantic
+   alias tokens — every component that references them adapts automatically.
+   The inline <script> in <head> applies this attribute before first paint
+   to eliminate FOUC for returning dark-mode users.
+
+   Palette rationale:
+   · Page bg  #1c1410 — very dark warm mocha, not cold black
+   · Card bg  #261c17 — slightly lifted surface, warm depth
+   · Header   rgba(28,20,16,0.95) — semi-transparent for backdrop-filter
+   · Brand accents lightened slightly for AA contrast on dark backgrounds
+   -------------------------------------------------------------------------- */
+
+[data-theme="dark"] {
+  /* — Surfaces — */
+  --bg-page:          #1c1410;
+  --bg-card:          #261c17;
+  --bg-header:        rgba(28, 20, 16, 0.95);
+  --bg-footer:        #2c1f18;
+
+  /* — Content — */
+  --text-primary:     #f0ebe5;
+  --text-secondary:   #b89080;
+  --text-link:        #c49a80;
+  --text-link-hover:  #d4aa90;
+
+  /* — Brand: lightened for contrast on dark surfaces — */
+  --color-mocha:      #c49a80;
+  --color-mocha-dark: #b08068;
+
+  /* — Surfaces using --color-grey directly (tags, cert items, nav hover) — */
+  --color-grey:       #2c1f18;
+  --color-grey-dark:  #3d2b22;
+
+  /* — Borders & shadows — */
+  --border-subtle:    #3d2b22;
+  --shadow-card:      0 2px 16px rgba(0, 0, 0, 0.40);
+  --shadow-card-hover:0 8px 32px rgba(0, 0, 0, 0.60);
+
+  /* — Status colours adjusted for dark backgrounds — */
+  --color-error:          #e74c3c;
+  --color-error-bg:       rgba(231, 76, 60, 0.12);
+  --color-error-border:   rgba(231, 76, 60, 0.25);
+  --color-success:        #4dcc80;
+  --color-success-bg:     rgba(77, 204, 128, 0.12);
+  --color-success-border: rgba(77, 204, 128, 0.30);
+
+  /* — Tag contrast tokens (scoped to dark theme) —
+     Both .card__tag and .tag share these tokens so a single token change
+     updates every pill-shaped label site-wide.
+     #F2F0EA on #3d2b22 = ~13:1 contrast — clears WCAG AAA for small text. */
+  --tag-bg:   var(--color-mocha-deep);   /* #3d2b22 deep warm mocha surface  */
+  --tag-text: #F2F0EA;                   /* Moonlit Grey — primary brand grey */
+}
+
+
+/* --------------------------------------------------------------------------
+   1c. DARK THEME — Component-level contrast patches
+   These rules target elements whose backgrounds are not driven by semantic
+   alias tokens and would therefore NOT auto-adapt when the token block above
+   fires. Kept here alongside the token block so all dark-mode decisions live
+   in one place rather than scattered through component sections.
+   -------------------------------------------------------------------------- */
+
+/* Project card tech tags: background via --color-grey (overridden dark) */
+[data-theme="dark"] .card__tag {
+  background-color: var(--tag-bg);
+  color:            var(--tag-text);
+}
+
+/* Skills cloud tags: background via --color-blue-light (NOT overridden) */
+[data-theme="dark"] .tag {
+  background-color: var(--tag-bg);
+  color:            var(--tag-text);
+}
+
+[data-theme="dark"] .tag:hover {
+  background-color: var(--color-mocha);
+  color:            var(--tag-text);
+}
+
+
+/* --------------------------------------------------------------------------
+   2. RESET & BASE — Normalize cross-browser quirks, set sensible defaults.
+   Using a light opinionated reset rather than a full library import so
+   we keep zero dependencies.
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  /* Border-box: padding/border are included in the element's total width.
+     This makes layout math intuitive and prevents unexpected overflow. */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Prevent text size adjustment on orientation change (iOS Safari) */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Hanging punctuation improves readability for long-form content */
+  hanging-punctuation: first last;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+  /* Subpixel rendering for sharper text on high-DPI screens */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove list bullets for elements with role="list" (intentional UI lists) */
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+}
+
+img,
+video {
+  /* Prevent images from overflowing their container */
+  max-width: 100%;
+  height: auto;
+  /* Removes the default bottom gap (inline baseline) */
+  display: block;
+}
+
+/* Inherit font stack for form elements (browsers don't do this by default) */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Focus styles: visible outline for keyboard users, hidden for mouse.
+   :focus-visible is the modern approach — avoids ugly outlines on click. */
+:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* Respect user's motion preference — disable animations for those with
+   vestibular disorders or simply that preference set in the OS. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   3. TYPOGRAPHY — Heading scale, link styles, body copy defaults.
+   -------------------------------------------------------------------------- */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+}
+
+h1 { font-size: var(--fs-2xl); }
+h2 { font-size: var(--fs-xl);  }
+h3 { font-size: var(--fs-lg);  }
+h4 { font-size: var(--fs-md);  }
+h5 { font-size: var(--fs-base);}
+h6 { font-size: var(--fs-sm);  }
+
+p {
+  max-width: 72ch; /* Optimal line length for readability (45–75 chars) */
+}
+
+a {
+  color: var(--text-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+a:hover {
+  color: var(--text-link-hover);
+}
+
+
+/* --------------------------------------------------------------------------
+   4. UTILITY CLASSES — Single-purpose helpers.
+   -------------------------------------------------------------------------- */
+
+/* Visually hidden but readable by screen readers — for accessible labels */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/*
+  Skip link — off-screen by default, slides into viewport on :focus-visible.
+  position: fixed keeps it relative to the viewport so it works regardless of
+  scroll position. z-index: 200 ensures it renders above the sticky header (100).
+*/
+.skip-link {
+  position: fixed;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: 200;
+  padding: var(--space-2) var(--space-6);
+  background-color: var(--color-mocha-deep);
+  color: var(--text-inverse);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card-hover);
+  /*
+    Move the element above the viewport. calc(-100% - space) ensures it
+    clears the header regardless of how tall the skip link renders.
+  */
+  transform: translateY(calc(-100% - var(--space-10)));
+  transition: transform var(--duration-normal) var(--ease-default);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  /* Suppress the global :focus-visible outline — the pill itself is
+     the focus indicator; adding a second ring creates visual clutter. */
+  outline: none;
+}
+
+/* Centred container with consistent horizontal padding */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+@media (min-width: 640px)  { .container { padding-inline: var(--space-6);  } }
+@media (min-width: 1024px) { .container { padding-inline: var(--space-10); } }
+
+/*
+  CLS PREVENTION — Lucide icons.
+  lucide.createIcons() replaces each <i data-lucide="..."> with an <svg>.
+  Pre-sizing the <i> to 1em × 1em ensures the replaced SVG occupies the
+  same space, eliminating layout shift during JS hydration.
+  pointer-events: none prevents icons from absorbing mouse events that
+  should propagate to their parent link/button.
+*/
+[data-lucide],
+svg.lucide {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/*
+  SCROLL ANCHOR OFFSET — accounts for the sticky header.
+  Without scroll-margin-top, jumping to an anchor positions the target
+  element under the 64px header, hiding the section heading.
+  calc adds a small breathing gap above the revealed content.
+*/
+#home,
+#main-content,
+#work,
+#about,
+#contact {
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+
+
+/* --------------------------------------------------------------------------
+   5. SITE HEADER — Sticky top bar; Flexbox for horizontal alignment.
+   -------------------------------------------------------------------------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100; /* Ensure header stays above scrolling content */
+  height: var(--header-height);
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--border-subtle);
+  /* Frosted glass effect on supporting browsers */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/*
+  .header__controls groups the theme toggle + nav into a single flex child
+  of .header__inner. This keeps the header a clean two-child layout
+  (brand ← → controls) without changing the existing justify-content logic.
+*/
+.header__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/*
+  THEME TOGGLE BUTTON — 44×44px touch target (WCAG 2.5.8).
+  Uses currentColor so the icon inherits the button's text colour and
+  automatically adapts to both light and dark themes.
+*/
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color            var(--duration-fast) var(--ease-default),
+    border-color     var(--duration-fast) var(--ease-default),
+    background-color var(--duration-fast) var(--ease-default);
+}
+
+.theme-toggle:hover {
+  color: var(--color-mocha);
+  border-color: var(--color-mocha);
+  background-color: var(--color-grey);
+}
+
+/*
+  Icon visibility: show moon in light mode (hint: "click for dark"),
+  show sun in dark mode (hint: "click for light").
+  CSS controls this via [data-theme] on <html> — no JS class toggling needed.
+*/
+.theme-toggle .icon--sun  { display: none;  }
+.theme-toggle .icon--moon { display: block; }
+
+[data-theme="dark"] .theme-toggle .icon--sun  { display: block; }
+[data-theme="dark"] .theme-toggle .icon--moon { display: none;  }
+
+/* Inner wrapper uses Flexbox: brand left, controls right */
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+/* Brand / logo area */
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  flex-shrink: 0; /* Prevent the brand from squishing on narrow viewports */
+}
+
+.brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-mocha);
+  color: var(--text-inverse);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-sm);
+  border-radius: var(--radius-md);
+  letter-spacing: 0.05em;
+}
+
+.brand__name {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-md);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+
+/* --------------------------------------------------------------------------
+   6. NAVIGATION — Mobile: hidden overlay. Desktop: inline Flexbox row.
+   -------------------------------------------------------------------------- */
+
+/* Hamburger toggle — only meaningful on mobile */
+.nav__toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /*
+    Touch target fix — WCAG 2.5.8 (Target Size, Minimum) requires ≥ 24×24px.
+    Best practice (and WCAG 2.5.5 AAA) recommends ≥ 44×44px.
+
+    Strategy: expand the interactive area with padding while keeping the
+    three visual bars at their original 26×18px dimensions.
+
+    With box-sizing: border-box (inherited globally):
+      total width  = content(26) + padding-inline(9+9)   = 44px ✓
+      total height = content(18) + padding-block(13+13)  = 44px ✓
+
+    The bar translateY values in the ×-animation (8px) remain correct
+    because the flex content area height is still 18px.
+  */
+  width: 44px;
+  height: 44px;
+  padding: 13px 9px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toggle__bar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: var(--text-primary);
+  border-radius: var(--radius-pill);
+  transition:
+    transform var(--duration-normal) var(--ease-default),
+    opacity   var(--duration-normal) var(--ease-default);
+}
+
+/* Animate bars into an "×" when menu is open */
+.nav__toggle[aria-expanded="true"] .toggle__bar:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+.nav__toggle[aria-expanded="true"] .toggle__bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.nav__toggle[aria-expanded="true"] .toggle__bar:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Mobile nav menu — hidden by default, shown via JS toggling aria-expanded */
+.nav__menu {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  /* Full-width dropdown sits just below the header */
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-4) 0;
+  box-shadow: 0 4px 16px rgba(44, 36, 32, 0.1);
+}
+
+/* JS adds .is-open class to <ul> to reveal the mobile menu */
+.nav__menu.is-open {
+  display: flex;
+}
+
+.nav__link {
+  /*
+    Changed from display:block to display:flex so icon + text sit inline.
+    align-items:center vertically centres the Lucide SVG with the label.
+  */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color var(--duration-fast) var(--ease-default),
+              background-color var(--duration-fast) var(--ease-default);
+}
+
+.nav__link:hover,
+.nav__link--active {
+  color: var(--color-mocha);
+  background-color: var(--color-grey);
+}
+
+/*
+  Non-colour active indicator — P1 Grayscale Rule fix.
+  An inset left stripe on mobile is shape-based and survives greyscale,
+  satisfying WCAG 1.4.1 (Use of Colour). Applied only to --active,
+  not to :hover, so it reads as a "current page" signal, not a hover state.
+*/
+.nav__link--active {
+  box-shadow: inset 3px 0 0 var(--color-mocha);
+}
+
+/* Desktop nav — switch to horizontal Flexbox row at 768px+ */
+@media (min-width: 768px) {
+  .nav__toggle {
+    display: none; /* Hide hamburger on desktop */
+  }
+
+  /* Override mobile-first positioning for inline nav */
+  .nav__menu {
+    display: flex !important; /* !important overrides the mobile .is-open toggle */
+    flex-direction: row;
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    background: none;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    gap: var(--space-1);
+  }
+
+  .nav__link {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background-color: transparent;
+  }
+
+  .nav__link:hover,
+  .nav__link--active {
+    background-color: var(--color-grey);
+    color: var(--color-mocha);
+  }
+
+  /*
+    On horizontal desktop nav, swap the left stripe for a bottom underline.
+    inset 0 -2px 0 paints a 2px line along the bottom edge of the link pill —
+    a natural "tab" indicator that reads clearly in greyscale.
+  */
+  .nav__link--active {
+    box-shadow: inset 0 -2px 0 var(--color-mocha);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   7. MACRO LAYOUT — CSS Grid for the main content area.
+   Mobile: single column stack.
+   Desktop (1024px+): sidebar (280px) | main content (1fr).
+   -------------------------------------------------------------------------- */
+
+/* site-main has no top padding — the hero section sits flush against
+   the header. Bottom padding is handled by .site-footer's margin-top. */
+.site-main {
+  padding-block: 0;
+}
+
+/* On mobile, layout-grid is a single column — no special CSS needed.
+   The natural block flow stacks everything vertically.
+   padding-block-start provides the breathing room between hero and content. */
+.layout-grid {
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  padding-block: var(--space-10) var(--space-8);
+  display: grid;
+  grid-template-columns: 1fr; /* Mobile: one column */
+  gap: var(--space-8);
+}
+
+/* At 1024px the viewport is wide enough to comfortably hold two columns */
+@media (min-width: 1024px) {
+  .layout-grid {
+    /* sidebar: fixed 280px; content: takes all remaining space */
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: auto;
+    align-items: start; /* Prevent sidebar from stretching to content height */
+    padding-inline: var(--space-10);
+    gap: var(--space-10);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   8. SIDEBAR — Sticky on desktop so it stays visible while content scrolls.
+   -------------------------------------------------------------------------- */
+
+.site-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  /* On mobile, sidebar renders below the main articles.
+     On desktop, CSS Grid column order takes over. */
+  order: 2; /* Push sidebar below content on mobile */
+}
+
+@media (min-width: 1024px) {
+  .site-sidebar {
+    order: 1; /* Restore sidebar to left column on desktop */
+    position: sticky;
+    /* top = header height + a little breathing room */
+    top: calc(var(--header-height) + var(--space-6));
+  }
+}
+
+.sidebar__widget {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.widget__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.widget__body {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-loose);
+}
+
+/* Tag cloud */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tag {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-blue-light);
+  color: var(--text-primary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-default),
+              color            var(--duration-fast) var(--ease-default);
+}
+
+.tag:hover {
+  background-color: var(--color-blue);
+  color: var(--text-primary);
+}
+
+
+/* --------------------------------------------------------------------------
+   9. CONTENT AREA — Article grid using CSS Grid auto-fill columns.
+   -------------------------------------------------------------------------- */
+
+.content-area {
+  order: 1; /* Main articles render first on mobile */
+}
+
+@media (min-width: 1024px) {
+  .content-area {
+    order: 2; /* Restore to right column on desktop */
+  }
+}
+
+.section__heading {
+  font-size: var(--fs-xl);
+  color: var(--text-primary);
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-4);
+  border-bottom: 2px solid var(--color-mocha);
+  display: inline-block; /* Border only spans the heading text, not full width */
+}
+
+/*
+  Article grid: auto-fill columns of at least 280px.
+  This is a CSS Grid intrinsic layout — it automatically decides how many
+  columns fit without a media query. Cards resize fluidly between columns.
+*/
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: var(--space-6);
+}
+
+
+/* --------------------------------------------------------------------------
+   10. CARD COMPONENT — Self-contained article card.
+   -------------------------------------------------------------------------- */
+
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden; /* Clip the image corners to the card border-radius */
+  box-shadow: var(--shadow-card);
+  /* Using Grid internally to allow card body to always sit at the bottom
+     and ensure cards in the same row are equal height. */
+  display: grid;
+  grid-template-rows: auto 1fr;
+  transition: transform   var(--duration-normal) var(--ease-default),
+              box-shadow  var(--duration-normal) var(--ease-default);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card__image-wrap {
+  aspect-ratio: 16 / 9; /* Enforce consistent image proportions */
+  overflow: hidden;
+  background-color: var(--color-grey-dark); /* Fallback while image loads */
+}
+
+.card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-default);
+}
+
+.card:hover .card__image {
+  transform: scale(1.04); /* Subtle zoom on hover */
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.card__tag {
+  align-self: flex-start;
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-grey);
+  color: var(--color-mocha);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+}
+
+.card__title {
+  font-size: var(--fs-md);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+}
+
+.card__excerpt {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-loose);
+  flex-grow: 1; /* Push the CTA button to the bottom of the card */
+}
+
+.card__cta {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  background-color: var(--color-mocha);
+  color: var(--text-inverse);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  margin-top: var(--space-2);
+  transition: background-color var(--duration-fast) var(--ease-default),
+              transform        var(--duration-fast) var(--ease-default);
+}
+
+.card__cta:hover {
+  background-color: var(--color-mocha-dark);
+  color: var(--text-inverse);
+  transform: translateX(2px);
+}
+
+.card__cta--disabled {
+  background-color: var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+
+/* --------------------------------------------------------------------------
+   11. SITE FOOTER — Dark mocha band, Flexbox row (stacks on mobile).
+   -------------------------------------------------------------------------- */
+
+.site-footer {
+  background-color: var(--bg-footer);
+  color: var(--text-inverse);
+  padding-block: var(--space-8);
+  margin-top: var(--space-12);
+}
+
+.footer__inner {
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+.footer__copy {
+  font-size: var(--fs-sm);
+  opacity: 0.85;
+  max-width: none; /* Override the 72ch paragraph rule — footer copy is short */
+}
+
+.footer__nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.footer__link {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+.footer__link:hover {
+  color: var(--text-inverse);
+}
+
+/*
+  Social link variant — pill-shaped button with a subtle border.
+  Gives LinkedIn and GitHub links a distinct "badge" treatment that
+  reads as interactive rather than plain text.
+*/
+.footer__link--social {
+  display: inline-flex;   /* Allow icon + text to sit side by side */
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-pill);
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    border-color     var(--duration-fast) var(--ease-default),
+    color            var(--duration-fast) var(--ease-default);
+}
+
+.footer__link--social:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: var(--text-inverse);
+}
+
+/* Footer left column: CTA copy + email */
+.footer__brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 44ch; /* Constrain CTA width for comfortable reading */
+}
+
+/* Closing CTA sentence */
+.footer__cta {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-loose);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: none; /* Override global 72ch paragraph rule */
+}
+
+/* Email address link */
+.footer__email {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  color: var(--color-blue);
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+.footer__email:hover {
+  color: var(--text-inverse);
+  text-decoration: underline;
+}
+
+/* Footer right column: social links + copyright */
+.footer__links {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Mobile: centre-aligned */
+  gap: var(--space-4);
+  text-align: center;
+}
+
+/* Two-column footer on wider screens */
+@media (min-width: 640px) {
+  .footer__inner {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start; /* Top-align columns so bio and links don't stretch */
+    text-align: left;
+  }
+
+  .footer__links {
+    align-items: flex-end; /* Right-align social links + copyright on desktop */
+    text-align: right;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   12. HERO SECTION
+   Mobile baseline: min-height 360px, full-width, centred content.
+   Progressive enhancement via min-width queries for tablet and desktop.
+
+   WCAG contrast notes:
+   · --color-mocha-deep (#3d2b22) vs white  → 14.2:1  (AAA, all text sizes)
+   · --color-mocha-deep (#3d2b22) vs --color-blue (#A0D4E0) → 8.9:1 (AAA)
+   · rgba(255,255,255,0.85) subtitle vs bg  → ~12:1   (AA large text ✓)
+   -------------------------------------------------------------------------- */
+
+.site-hero {
+  position: relative;
+  /*
+    min-height instead of height so that if content grows (e.g. long title
+    wraps on very narrow viewports) the section expands rather than clips.
+    360px matches the mobile blueprint spec.
+  */
+  min-height: 360px;
+  background-color: var(--color-mocha-deep);
+  /*
+    Diagonal gradient: deep mocha anchors the dark end (top-left) while
+    a warm mocha mid-tone adds depth on the right — pulls the eye toward
+    the content column on wider screens.
+  */
+  background-image: linear-gradient(
+    135deg,
+    var(--color-mocha-deep) 0%,
+    var(--color-mocha-mid)  55%,
+    var(--color-mocha-dark) 100%
+  );
+  overflow: hidden;
+  /*
+    isolation: isolate creates a new stacking context so the decorative
+    pseudo-elements behind .hero__content never bleed past the section.
+  */
+  isolation: isolate;
+}
+
+/* Content wrapper — Flexbox centres the text block within the min-height zone */
+.hero__inner {
+  position: relative;
+  z-index: 1; /* Sit above the decorative blobs */
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Mobile: centred */
+  min-height: 360px;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  /*
+    padding-block gives breathing room above/below text when the viewport
+    is very narrow and content wraps; padding-inline matches the grid.
+  */
+  padding: var(--space-10) var(--space-6);
+}
+
+/* The actual text + CTA stack — Flexbox column, centred on mobile */
+.hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Mobile: centre-aligned */
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 640px;
+  width: 100%;
+}
+
+/* Eyebrow — small programme label above the h1 */
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  background-color: rgba(160, 212, 224, 0.15); /* Ethereal Blue tint */
+  border: 1px solid rgba(160, 212, 224, 0.3);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-blue);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  max-width: none; /* Override the 72ch paragraph rule */
+}
+
+/* Hero h1 — the page's sole primary heading */
+.hero__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.03em;
+  color: var(--text-inverse);
+  /*
+    text-shadow adds a subtle depth layer — belt + suspenders for contrast.
+    Even on degraded screens where color rendering is off, the shadow
+    reinforces the text-from-background separation.
+  */
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  max-width: none;
+}
+
+/*
+  <em> in the title gets Ethereal Blue — a semantic emphasis that is also
+  a brand accent moment. font-style: normal keeps it from looking like a
+  citation; the color alone carries the distinction.
+*/
+.hero__title em {
+  font-style: normal;
+  color: var(--color-blue);
+}
+
+/*
+  Professional role line — the "what I do" statement.
+  Sits between the name (h1) and the tagline quote in the visual stack.
+  Uses Ethereal Blue so it reads as a distinct tier against the dark hero,
+  without competing with the white name above or the muted tagline below.
+*/
+.hero__role {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-blue);
+  letter-spacing: 0.04em;
+  line-height: var(--lh-normal);
+  max-width: none; /* Override the 72ch paragraph rule */
+}
+
+/* Hero subtitle — supporting copy beneath the title */
+.hero__subtitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 52ch;
+}
+
+/* CTA button group */
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap; /* Wrap to next line on very narrow viewports */
+  gap: var(--space-3);
+  justify-content: center; /* Mobile: centred */
+  margin-top: var(--space-2);
+}
+
+/* Shared CTA base — both variants inherit from here */
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    color            var(--duration-fast) var(--ease-default),
+    border-color     var(--duration-fast) var(--ease-default),
+    transform        var(--duration-fast) var(--ease-default);
+}
+
+/*
+  Primary CTA — Ethereal Blue fill; dark text for contrast.
+  #A0D4E0 vs #2c2420 → 7.1:1 (WCAG AA ✓).
+*/
+.hero__cta--primary {
+  background-color: var(--color-blue);
+  color: var(--text-primary);
+  border-color: var(--color-blue);
+}
+
+.hero__cta--primary:hover {
+  background-color: var(--color-blue-hover);
+  border-color: var(--color-blue-hover);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+/*
+  Ghost CTA — transparent fill, white border; legible against dark bg.
+  white vs #3d2b22 → 14.2:1 (AAA ✓).
+*/
+.hero__cta--ghost {
+  background-color: transparent;
+  color: var(--text-inverse);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero__cta--ghost:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--text-inverse);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+}
+
+/*
+  Decorative blob layer — two CSS circles using ::before / ::after.
+  aria-hidden="true" on the parent div keeps these invisible to AT.
+  pointer-events: none ensures they never intercept clicks.
+*/
+.hero__decoration {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero__decoration::before,
+.hero__decoration::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+/* Large Ethereal Blue circle — top-right quadrant */
+.hero__decoration::before {
+  width: clamp(280px, 40vw, 560px);
+  height: clamp(280px, 40vw, 560px);
+  background: radial-gradient(
+    circle,
+    var(--color-blue) 0%,
+    transparent 70%
+  );
+  top: -30%;
+  right: -12%;
+  opacity: 0.12;
+}
+
+/* Smaller Moonlit Grey circle — bottom-left quadrant */
+.hero__decoration::after {
+  width: clamp(180px, 25vw, 380px);
+  height: clamp(180px, 25vw, 380px);
+  background: radial-gradient(
+    circle,
+    var(--color-grey) 0%,
+    transparent 70%
+  );
+  bottom: -25%;
+  left: -8%;
+  opacity: 0.18;
+}
+
+/* — Tablet (640px+): taller hero, content shifts left — */
+@media (min-width: 640px) {
+  .site-hero {
+    min-height: 440px;
+  }
+
+  .hero__inner {
+    min-height: 440px;
+    justify-content: flex-start; /* Align content block to the left */
+    padding-inline: var(--space-10);
+  }
+
+  .hero__content {
+    align-items: flex-start; /* Left-align text */
+    text-align: left;
+  }
+
+  .hero__actions {
+    justify-content: flex-start;
+  }
+}
+
+/* — Desktop (1024px+): max-height and larger decorative blobs — */
+@media (min-width: 1024px) {
+  .site-hero {
+    min-height: 520px;
+  }
+
+  .hero__inner {
+    min-height: 520px;
+    padding-inline: var(--space-10);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   13. PROFILE CARD — Sidebar identity block (avatar + name + role + bio).
+   The avatar uses CSS-only initials — no image dependency, no 404 risk.
+   -------------------------------------------------------------------------- */
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/*
+  Avatar circle — initials rendered via CSS.
+  A gradient between the two mocha tones gives it depth without an image.
+  aria-hidden="true" in the HTML means AT skips it; the heading below
+  already announces the person's name.
+*/
+.profile-card__avatar {
+  flex-shrink: 0; /* Prevent the circle from squishing on narrow sidebars */
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--color-mocha)      0%,
+    var(--color-mocha-dark) 100%
+  );
+  color: var(--text-inverse);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  /* Subtle ring that ties the avatar to the brand palette */
+  box-shadow: 0 0 0 3px var(--color-grey-dark);
+}
+
+.profile-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0; /* Allow text to truncate inside flex rather than overflow */
+}
+
+.profile-card__name {
+  font-family: var(--font-display);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  line-height: var(--lh-tight);
+  /*
+    Clamp long names to one line with an ellipsis on very narrow sidebars.
+    white-space + overflow + text-overflow work together for this.
+  */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-card__role {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-mocha);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+
+/* --------------------------------------------------------------------------
+   14. CERTIFICATION LIST — Accredited achievement badges in the sidebar.
+   Left-border accent ties each item to the Mocha Mousse brand colour
+   without requiring an icon font or SVG dependency.
+   -------------------------------------------------------------------------- */
+
+.cert-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cert-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  background-color: var(--color-grey);
+  border-radius: var(--radius-md);
+  /*
+    inset left border — shape-based differentiator that survives greyscale
+    and communicates "this is a distinct item" without colour alone.
+  */
+  box-shadow: inset 3px 0 0 var(--color-mocha);
+  transition: box-shadow var(--duration-fast) var(--ease-default);
+}
+
+.cert-item:hover {
+  box-shadow: inset 3px 0 0 var(--color-mocha-dark);
+}
+
+/* Issuer name — prominent, branded */
+.cert-item__issuer {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-xs);
+  color: var(--color-mocha);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* Credential name — supporting, secondary colour */
+.cert-item__name {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  line-height: var(--lh-normal);
+}
+
+
+/* --------------------------------------------------------------------------
+   15. CONTACT SECTION — Full form between the layout grid and footer.
+   Uses the card surface (white / dark-card) to lift it above the page bg.
+   Form row becomes two-column at 640px (name + email side-by-side).
+   -------------------------------------------------------------------------- */
+
+.contact-section {
+  background-color: var(--bg-card);
+  border-top: 2px solid var(--border-subtle);
+  padding-block: var(--space-12);
+  margin-top: var(--space-12);
+}
+
+.contact-inner {
+  max-width: 720px;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+@media (min-width: 640px) {
+  .contact-inner {
+    padding-inline: var(--space-8);
+  }
+}
+
+.contact-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.contact-subtitle {
+  font-size: var(--fs-base);
+  color: var(--text-secondary);
+  max-width: 52ch;
+}
+
+/* Form layout — column stack on mobile, rows of fields inside */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Name + Email on the same row at 640px+ */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-label {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.form-required {
+  color: var(--color-error);
+  margin-left: var(--space-1);
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-page);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  transition:
+    border-color     var(--duration-fast) var(--ease-default),
+    box-shadow       var(--duration-fast) var(--ease-default),
+    background-color var(--duration-fast) var(--ease-default);
+}
+
+.form-input:hover,
+.form-textarea:hover {
+  border-color: var(--color-mocha);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-mocha);
+  box-shadow: 0 0 0 3px rgba(165, 133, 111, 0.2);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: var(--lh-normal);
+}
+
+/* Error state — border + background tint */
+.form-input--error {
+  border-color: var(--color-error);
+  background-color: var(--color-error-bg);
+}
+
+.form-input--error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px var(--color-error-bg);
+}
+
+/* Field-level error message — min-height reserves space to prevent CLS */
+.field-error {
+  display: block;
+  min-height: 1.1em;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-error);
+  line-height: var(--lh-tight);
+}
+
+/* Submit button */
+.form-submit {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-8);
+  background-color: var(--color-mocha);
+  color: var(--text-inverse);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  min-width: 160px; /* Prevents the button from jumping width between states */
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    transform        var(--duration-fast) var(--ease-default);
+}
+
+.form-submit:hover:not(:disabled) {
+  background-color: var(--color-mocha-dark);
+  transform: translateY(-2px);
+}
+
+.form-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* .submit-label and .submit-icon are direct flex children of the button */
+.submit-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* .submit-loading — "Sending…" group, hidden until loading state activates */
+.submit-loading {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* CSS spinner — always visible inside .submit-loading (the group hides it) */
+.submit-spinner {
+  width: 1.1em;
+  height: 1.1em;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: var(--text-inverse);
+  border-radius: 50%;
+  border-width: 2px;
+  border-style: solid;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Loading state: swap idle label for "Sending…" spinner group */
+.form-submit--loading .submit-label   { display: none; }
+.form-submit--loading .submit-loading { display: inline-flex; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Top-of-form status banner */
+.form-status {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-normal);
+  border: 1px solid transparent;
+}
+
+.form-status--success {
+  background-color: var(--color-success-bg);
+  border-color:     var(--color-success-border);
+  color:            var(--color-success);
+}
+
+.form-status--error {
+  background-color: var(--color-error-bg);
+  border-color:     var(--color-error-border);
+  color:            var(--color-error);
+}
+
+
+/* --------------------------------------------------------------------------
+   16. SKELETON LOADING STATES — Project grid placeholder cards.
+   Shimmer animation simulates content loading ("content is coming soon").
+   aria-hidden="true" on each skeleton keeps AT from reading placeholder noise.
+   Staggered animation-delay on skeleton lines gives a wave effect.
+   -------------------------------------------------------------------------- */
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/*
+  Base shimmer style — applied as a utility class on skeleton elements.
+  The gradient moves across the element, simulating a light sweep.
+*/
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    var(--color-grey-dark) 25%,
+    var(--border-subtle)   50%,
+    var(--color-grey-dark) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Width variants for realistic text placeholder shapes */
+.skeleton-line--xs   { width: 35%; }
+.skeleton-line--sm   { width: 50%; }
+.skeleton-line--md   { width: 75%; }
+.skeleton-line--full { width: 100%; }
+
+/* Stagger the shimmer wave across each line */
+.card--skeleton .skeleton-line:nth-child(2) { animation-delay: 0.10s; }
+.card--skeleton .skeleton-line:nth-child(3) { animation-delay: 0.20s; }
+.card--skeleton .skeleton-line:nth-child(4) { animation-delay: 0.30s; }
+
+/* Error state spans the full grid width */
+.grid-error {
+  grid-column: 1 / -1;
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-card);
+}
+
+.grid-empty {
+  grid-column: 1 / -1;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  padding: var(--space-6);
+  text-align: center;
+}
+
+
+/* --------------------------------------------------------------------------
+   17. API STATUS INDICATOR — "The Pulse"
+   ──────────────────────────────────────────────────────────────────────────
+   Three visual states driven by JS class toggling on #apiStatus:
+
+     (no class)              → Checking…  — neutral grey dot, no animation
+     .api-status--online     → Online      — Ethereal Blue dot, pulse ring
+     .api-status--offline    → Offline     — muted mocha dot, no animation
+
+   Mobile: only the dot is shown (label hidden) to preserve header space.
+   640px+: full pill (dot + label) is revealed.
+
+   Palette notes:
+     Online  → --color-blue  (#A0D4E0) — Ethereal Blue; 10.6:1 on dark header
+     Offline → --text-secondary        — warm muted tone; adapts to both themes
+     Glow    → rgba(160, 212, 224, …)  — hardcoded because CSS custom properties
+               cannot be used inside rgba() in older syntax; value matches --color-blue
+   -------------------------------------------------------------------------- */
+
+/* Keyframe — expanding ring that radiates outward from the dot, then fades.
+   2.5s duration ≈ 24 pulses/minute, matching a calm resting heartbeat rhythm. */
+@keyframes server-pulse {
+  0%   {
+    box-shadow: 0 0 0 0   rgba(160, 212, 224, 0.70);
+    transform:  scale(1);
+  }
+  40%  {
+    box-shadow: 0 0 0 6px rgba(160, 212, 224, 0.15);
+    transform:  scale(1.1);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(160, 212, 224, 0);
+    transform:  scale(1);
+  }
+}
+
+/* Container — pill-shaped badge that sits in .header__controls */
+.api-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-page);
+  /*
+    white-space: nowrap prevents the label from wrapping inside the header
+    and breaking the flex row layout on narrow viewports.
+  */
+  white-space: nowrap;
+  /* Smooth border/bg transitions when the theme changes */
+  transition:
+    border-color     var(--duration-fast) var(--ease-default),
+    background-color var(--duration-fast) var(--ease-default);
+}
+
+/* The dot — 8px circle; colour and animation applied by state modifiers */
+.api-status__dot {
+  flex-shrink: 0;
+  width:  8px;
+  height: 8px;
+  border-radius: 50%;
+  /* Default (checking): neutral border colour — low visual weight */
+  background-color: var(--border-subtle);
+  transition: background-color var(--duration-normal) var(--ease-default);
+}
+
+/* Text label — hidden on mobile; revealed at 640px+ */
+.api-status__label {
+  display: none;
+  font-family:    var(--font-display);
+  font-size:      var(--fs-xs);
+  font-weight:    var(--fw-semibold);
+  color:          var(--text-secondary);
+  letter-spacing: 0.03em;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+@media (min-width: 640px) {
+  .api-status__label {
+    display: inline;
+  }
+}
+
+/* ── Online state ────────────────────────────────────────────────────────── */
+
+.api-status--online .api-status__dot {
+  background-color: var(--color-blue);
+  animation: server-pulse 2.5s ease-out infinite;
+}
+
+.api-status--online .api-status__label {
+  color: var(--color-blue);
+}
+
+/* Online pill gets a subtle Ethereal Blue border tint */
+.api-status--online {
+  border-color: rgba(160, 212, 224, 0.4);
+}
+
+/* ── Offline state ───────────────────────────────────────────────────────── */
+
+.api-status--offline .api-status__dot {
+  background-color: var(--text-secondary);
+  animation: none;
+}
+
+.api-status--offline .api-status__label {
+  color: var(--text-secondary);
+}
+
+/* Offline pill reverts to the default border */
+.api-status--offline {
+  border-color: var(--border-subtle);
+}

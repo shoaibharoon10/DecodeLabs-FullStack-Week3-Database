@@ -1,0 +1,18 @@
+{
+  "name": "portfolio-api",
+  "version": "2.0.0",
+  "description": "REST API layer for Muhammad Shoaib's portfolio — DecodeLabs Batch 2026 Week 2.",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm":  ">=9.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
