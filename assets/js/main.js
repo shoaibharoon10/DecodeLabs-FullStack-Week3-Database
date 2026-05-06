@@ -1,6 +1,6 @@
 /**
  * main.js — Muhammad Shoaib Portfolio
- * DecodeLabs Industrial Training | Batch 2026 | Project 1
+ * DecodeLabs Industrial Training | Batch 2026 | Project 4 (Unified Systems)
  *
  * Philosophy: Progressive Enhancement.
  * Every feature degrades gracefully — the page is fully usable if this
@@ -163,93 +163,170 @@ if (yearEl) {
      b) API Error      — non-ok HTTP status; shows inline error in the grid
      c) Network Void   — fetch() throws (offline, CORS, DNS failure)
 
-   XSS defence: every value from the API passes through escapeHtml() before
-   being written into innerHTML.
+   XSS defence: all DOM writes use the pure DOM Insertion Process
+   (createElement + textContent + setAttribute + appendChild).
+   No innerHTML, no template-literal string injection, no escapeHtml façade.
+
+   I-P-O Unidirectional Data Flow:
+     Input   → fetchProjects() called on page load
+     Process → fetch() → !res.ok guard → .json() → data extraction
+     Output  → renderProjects(data) or renderGridError(message)
+     Shield  → finally{} always decommissions the skeleton UI
    ========================================================================== */
 
 const API_BASE    = 'https://shabichem-decodelabs-portfolio-api.hf.space';
 const projectGrid = document.getElementById('projectGrid');
 
 /**
- * Escapes the five HTML-special characters to block XSS when injecting
- * API data via innerHTML.
- * @param {unknown} value
+ * Validates a URL's protocol to block javascript: and data: injection.
+ * Returns the original URL for http/https, empty string otherwise.
+ * Used exclusively for anchor href — where javascript: executes on click.
+ *
+ * @param {string} rawUrl
  * @returns {string}
  */
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g,  '&amp;')
-    .replace(/</g,  '&lt;')
-    .replace(/>/g,  '&gt;')
-    .replace(/"/g,  '&quot;')
-    .replace(/'/g,  '&#039;');
+function sanitizeUrl(rawUrl) {
+  try {
+    const { protocol } = new URL(rawUrl);
+    return (protocol === 'https:' || protocol === 'http:') ? rawUrl : '';
+  } catch {
+    return '';
+  }
 }
 
 /**
- * Builds one <article> card markup string from a project data object.
- * Template literals keep this readable without DOM creation overhead.
+ * Builds one <article> card element using the pure DOM Insertion Process.
+ *
+ * Every API value is written via textContent or setAttribute — the browser
+ * never parses them as HTML, eliminating the innerHTML XSS surface entirely.
+ * No escapeHtml needed: textContent and setAttribute are intrinsically safe.
  *
  * @param {{ id, title, tag, excerpt, image, imageAlt, url }} project
  * @param {number} index — first card gets fetchpriority="high" for LCP
- * @returns {string}
+ * @returns {HTMLElement}
  */
-function buildCardHTML(project, index) {
+function buildCardElement(project, index) {
   const { id, title, tag, excerpt, image, imageAlt, url } = project;
   const isPriority = index === 0;
 
-  return `
-    <article class="card" aria-labelledby="card-${id}-title">
-      <div class="card__image-wrap">
-        <img
-          src="${escapeHtml(image)}"
-          alt="${escapeHtml(imageAlt)}"
-          class="card__image"
-          loading="${isPriority ? 'eager' : 'lazy'}"
-          ${isPriority ? 'fetchpriority="high"' : ''}
-          width="600"
-          height="340"
-        />
-      </div>
-      <div class="card__body">
-        <span class="card__tag">${escapeHtml(tag)}</span>
-        <h3 class="card__title" id="card-${id}-title">${escapeHtml(title)}</h3>
-        <p class="card__excerpt">${escapeHtml(excerpt)}</p>
-        ${url
-          ? `<a
-          href="${escapeHtml(url)}"
-          class="card__cta"
-          aria-label="View the ${escapeHtml(title)} project live"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View Project
-          <i data-lucide="arrow-right" aria-hidden="true"></i>
-        </a>`
-          : `<span class="card__cta card__cta--disabled" aria-label="${escapeHtml(title)} — coming soon">
-          Coming Soon
-        </span>`
-        }
-      </div>
-    </article>`;
+  // <article class="card" aria-labelledby="card-{id}-title">
+  const article = document.createElement('article');
+  article.className = 'card';
+  article.setAttribute('aria-labelledby', `card-${id}-title`);
+
+  // ── Image wrapper ─────────────────────────────────────────────────────────
+  const imageWrap = document.createElement('div');
+  imageWrap.className = 'card__image-wrap';
+
+  const img = document.createElement('img');
+  img.src       = String(image ?? '');   // img.src is a URL, not HTML — safe
+  img.alt       = String(imageAlt ?? '');
+  img.className = 'card__image';
+  img.loading   = isPriority ? 'eager' : 'lazy';
+  img.width     = 600;
+  img.height    = 340;
+  if (isPriority) img.setAttribute('fetchpriority', 'high');
+
+  imageWrap.appendChild(img);
+
+  // ── Card body ─────────────────────────────────────────────────────────────
+  const body = document.createElement('div');
+  body.className = 'card__body';
+
+  const tagEl = document.createElement('span');
+  tagEl.className   = 'card__tag';
+  tagEl.textContent = String(tag ?? '');
+
+  const titleEl = document.createElement('h3');
+  titleEl.className   = 'card__title';
+  titleEl.id          = `card-${id}-title`;
+  titleEl.textContent = String(title ?? '');
+
+  const excerptEl = document.createElement('p');
+  excerptEl.className   = 'card__excerpt';
+  excerptEl.textContent = String(excerpt ?? '');
+
+  // CTA — anchor if url passes sanitization, disabled span otherwise
+  const safeHref = url ? sanitizeUrl(url) : '';
+  let ctaEl;
+
+  if (safeHref) {
+    ctaEl = document.createElement('a');
+    ctaEl.href      = safeHref;
+    ctaEl.className = 'card__cta';
+    ctaEl.setAttribute('aria-label', `View the ${String(title ?? '')} project live`);
+    ctaEl.target    = '_blank';
+    ctaEl.rel       = 'noopener noreferrer';
+
+    ctaEl.appendChild(document.createTextNode('View Project'));
+
+    const ctaIcon = document.createElement('i');
+    ctaIcon.setAttribute('data-lucide', 'arrow-right');
+    ctaIcon.setAttribute('aria-hidden', 'true');
+    ctaEl.appendChild(ctaIcon);
+  } else {
+    ctaEl = document.createElement('span');
+    ctaEl.className = 'card__cta card__cta--disabled';
+    ctaEl.setAttribute('aria-label', `${String(title ?? '')} — coming soon`);
+    ctaEl.textContent = 'Coming Soon';
+  }
+
+  body.appendChild(tagEl);
+  body.appendChild(titleEl);
+  body.appendChild(excerptEl);
+  body.appendChild(ctaEl);
+
+  article.appendChild(imageWrap);
+  article.appendChild(body);
+
+  return article;
+}
+
+/**
+ * Renders an actionable error state into the project grid using DOM insertion.
+ * Pure output function — aria-busy is managed by the fetchProjects finally{}.
+ *
+ * @param {string} message — human-readable, actionable error copy
+ */
+function renderGridError(message) {
+  if (!projectGrid) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'grid-error';
+  wrapper.setAttribute('role', 'alert');
+
+  const p = document.createElement('p');
+  p.textContent = message;
+  wrapper.appendChild(p);
+
+  projectGrid.replaceChildren(wrapper);
 }
 
 /**
  * Replaces skeleton placeholders with real project cards.
+ * Pure output function — does not touch aria-busy or any loading state.
+ * Uses a DocumentFragment for a single, efficient DOM reflow.
+ *
  * @param {Array} projects
  */
 function renderProjects(projects) {
   if (!projectGrid) return;
 
   if (!projects || projects.length === 0) {
-    projectGrid.innerHTML = '<p class="grid-empty">No projects available yet.</p>';
-    projectGrid.setAttribute('aria-busy', 'false');
+    const p = document.createElement('p');
+    p.className   = 'grid-empty';
+    p.textContent = 'No projects available yet.';
+    projectGrid.replaceChildren(p);
     return;
   }
 
-  projectGrid.innerHTML = projects.map(buildCardHTML).join('');
-  projectGrid.setAttribute('aria-busy', 'false');
+  const fragment = document.createDocumentFragment();
+  projects.forEach((project, index) => {
+    fragment.appendChild(buildCardElement(project, index));
+  });
+  projectGrid.replaceChildren(fragment);
 
-  // Re-hydrate icons injected by innerHTML — the initial createIcons() call
+  // Re-hydrate icons injected via DOM — the initial createIcons() call
   // ran before these cards existed in the DOM.
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
@@ -258,29 +335,42 @@ function renderProjects(projects) {
 
 /**
  * Entry point: fetches /api/projects and drives renderProjects or the
- * error state. The HTML skeleton cards already provide the loading state.
+ * error state following strict I-P-O Unidirectional Data Flow.
+ *
+ * The Shield (finally{}): skeleton UI is always decommissioned — success,
+ * API error, or Network Void — because aria-busy management lives here,
+ * not scattered across renderProjects and the catch block.
  */
 async function fetchProjects() {
   if (!projectGrid) return;
 
   try {
+    // ── PROCESS: Async Fetch ───────────────────────────────────────────────
     const res = await fetch(`${API_BASE}/api/projects`);
 
+    // Senior guard: check !res.ok BEFORE parsing JSON.
+    // A non-ok response body may not be JSON (e.g. 502 Nginx HTML page).
+    // Throw a descriptive HTTP error so the catch gets a meaningful message.
     if (!res.ok) {
-      throw new Error(`API responded ${res.status}`);
+      throw new Error(`${res.status} ${res.statusText}`);
     }
 
     const { data } = await res.json();
+
+    // ── OUTPUT: DOM Manipulation ───────────────────────────────────────────
     renderProjects(data);
+
   } catch (err) {
-    // Network Void — could be offline, CORS blocked, bad JSON, or 5xx
+    // Network Void or thrown HTTP error — both surface an actionable message.
     console.error('[fetchProjects]', err.message);
+    renderGridError('Could not load projects — check your connection or try refreshing.');
+
+  } finally {
+    // ── THE SHIELD ─────────────────────────────────────────────────────────
+    // Runs unconditionally: success, API error, or Network Void.
+    // Single owner of skeleton decommission — never duplicated across branches.
     if (projectGrid) {
       projectGrid.setAttribute('aria-busy', 'false');
-      projectGrid.innerHTML = `
-        <div class="grid-error" role="alert">
-          <p>Could not load projects — check your connection or try refreshing.</p>
-        </div>`;
     }
   }
 }
@@ -415,31 +505,40 @@ if (contactForm) {
     };
 
     try {
-      const res  = await fetch(`${API_BASE}/api/contact`, {
+      const res = await fetch(`${API_BASE}/api/contact`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(body),
       });
 
+      // Senior guard: check !res.ok BEFORE calling res.json().
+      // A 5xx response may return an HTML error page — parsing it as JSON
+      // throws a SyntaxError that masks the real HTTP status in the catch.
+      // 400 is excluded: the BBB always returns structured JSON for validation
+      // failures, and we need data.details to surface field-level errors.
+      if (!res.ok && res.status !== 400) {
+        throw new Error(`${res.status} ${res.statusText}`);
+      }
+
       const data = await res.json();
 
       if (res.status === 201) {
-        // ── Success path ────────────────────────────────────────────────────
+        // ── Success path ───────────────────────────────────────────────────
         showFormStatus('success', data.message || "Message sent — I'll be in touch soon.");
         contactForm.reset();
 
       } else if (res.status === 400) {
-        // ── Blood-Brain Barrier rejection — field-level detail ───────────────
+        // ── Blood-Brain Barrier rejection — field-level detail ─────────────
         showFormStatus('error', 'Please fix the highlighted fields below.');
         applyFieldErrors(data.details || []);
 
       } else {
-        // ── Server-side error (5xx or unexpected status) ─────────────────────
+        // ── Unexpected 2xx/3xx — surface server message if available ────────
         showFormStatus('error', data.error || 'Something went wrong. Please try again.');
       }
 
     } catch (err) {
-      // ── Network Void — fetch never reached the server ─────────────────────
+      // ── Network Void or thrown HTTP error ─────────────────────────────────
       console.error('[contactForm]', err.message);
       showFormStatus('error', 'Network error — please check your connection and try again.');
 
