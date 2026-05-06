@@ -539,3 +539,54 @@ curl -X POST http://localhost:3001/api/contact \
 
 *Built with purpose. Crafted with precision.*
 *DecodeLabs Industrial Training — Batch 2026*
+
+---
+
+## Week 3 — Database Integration (The Persistent Vault)
+
+### Architecture: State Persistence Phase
+In this milestone, the application transitioned from a volatile file-based system (`data.json`) to a professional-grade **Persistent Architecture** using **PostgreSQL (Neon)**. This ensures "Data Longevity"—where data survives server restarts and container rebuilds.
+
+| Feature | Legacy System (W2) | Persistent System (W3) |
+|---|---|---|
+| **Storage** | `data.json` (Flat File) | PostgreSQL (Relational DB) |
+| **Integrity** | Application-level checks only | Schema-level constraints (NOT NULL, UNIQUE, CHECK) |
+| **Security** | Vulnerable to local I/O | Shielded via Parameterized Queries |
+| **Scalability** | Limited by disk I/O | High-performance Connection Pooling |
+
+---
+
+### Pillar 1 — The Blueprint (Schema Design)
+The "Relational Geometry" was designed to enforce absolute distinctness and data integrity at the core level.
+
+**Tables Implemented:**
+- `projects`: id (PK), title, image_url, project_url, tag.
+- `contacts`: id (PK), name, email, message, created_at.
+
+---
+
+### Pillar 2 — The Bridge (Integration)
+Connected the Node.js backend to the Neon PostgreSQL instance using the **Native 'pg' Driver** for maximum execution speed.
+- Implemented a **Connection Pool** in `db.js` to handle multiple concurrent requests efficiently.
+- Utilized environment variables (`DATABASE_URL`) for secure credential management.
+
+---
+
+### Pillar 3 — The Action (CRUD & RESTful HTTP)
+Mapped database actions to standard HTTP verbs to maintain a clean RESTful interface:
+- **READ (GET /api/projects)**: Executes `SELECT * FROM projects` to retrieve live data.
+- **CREATE (POST /api/contact)**: Executes `INSERT INTO contacts` to store user messages permanently.
+
+---
+
+### Pillar 4 — The Shield (Integrity & Security)
+The database is now the **Final Source of Truth**. We implemented strict security layers to protect the "Digital Vault":
+- **Parameterized Queries**: Neutralized SQL Injection threats by treating user input strictly as harmless data, never as executable logic (`$1, $2` syntax).
+- **Schema Constraints**: Enforced `CHECK` constraints on message lengths and `NOT NULL` on critical fields to prevent malformed data from being persisted.
+
+---
+
+## Final Project Status (Week 3)
+✅ **Backend**: Hosted on Hugging Face Spaces with Neon DB Integration.
+✅ **Frontend**: Deployed on Vercel, dynamically fetching from the persistent API.
+✅ **Persistence**: All contact form submissions and project data are now stored in the cloud vault.
